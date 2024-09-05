@@ -88,7 +88,13 @@ DATABASES = {
 }
 
 # Custom User Model
-AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
 
 
 # Password validation
