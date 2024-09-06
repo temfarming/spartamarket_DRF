@@ -71,3 +71,9 @@ class SignupSerializer(serializers.ModelSerializer):
         # 데이터베이스에 사용자 정보 저장
         user.save()
         return user  # 새로 생성된 User 객체를 반환
+    
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = [ 'email', 'first_name', 'nickname', 'birth_date', 'gender', 'bio']
+        read_only_fields = ['username']  # username 필드를 읽기 전용으로 설정
