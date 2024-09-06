@@ -1,19 +1,20 @@
 
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status, views
+from rest_framework import status, views, serializers
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import CustomUser
 from .serializers import SignupSerializer, CustomUserSerializer
+from django.contrib.auth import update_session_auth_hash
 
 
 # 로그인  (JWT 토큰 발급)
 class CustomTokenObtainPairView(TokenObtainPairView):
     pass
 
-# 로그아웃 View
+# 로그아웃 
 class LogoutView(views.APIView):
     permission_classes = [IsAuthenticated]  # 인증된 사용자만 가능
 
@@ -54,3 +55,46 @@ class ProfileUpdateView(generics.UpdateAPIView):
     def get_queryset(self):
         # 로그인한 사용자만 자신의 프로필을 수정할 수 있도록 제한
         return CustomUser.objects.filter(username=self.request.user.username)
+    
+    # 패스워드 변경 View
+class ChangePasswordView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    class ChangePasswordSerializer(serializers.Serializer):
+        old_password = serializers.CharField(required=True)
+        new_password = serializers.CharField(required=True)
+
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        serializer = self.ChangePasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            # 기존 비밀번호가 맞는지 확인
+            if not user.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": "Wrong password."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 새로운 비밀번호 설정
+            user.set_password(serializer.data.get("new_password"))
+            user.save()
+
+            # 세션 유지
+            update_session_auth_hash(request, user)
+
+            return Response({"detail": "Password updated successfully."}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+# 회원 탈퇴 View
+class DeleteAccountView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, *args, **kwargs):
+        user = request.user
+        password = request.data.get("password")
+
+        # 비밀번호가 맞는지 확인
+        if not user.check_password(password):
+            return Response({"password": "Wrong password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.delete()  # 계정 삭제
+        return Response({"detail": "Account deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
