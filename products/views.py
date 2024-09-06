@@ -44,15 +44,27 @@
 #         product.delete()
 #         return Response(status=status.HTTP_204_NO_CONTENT)
     
-from rest_framework import generics, permissions, serializers  
-from .models import Product
-from .serializers import ProductSerializer
+from rest_framework import generics, permissions, serializers
+from rest_framework.pagination import PageNumberPagination  
+from .models import Product, Category
+from .serializers import ProductSerializer, CategorySerializer
+from django_filters.rest_framework import DjangoFilterBackend
+
+
+# 카테고리 목록 조회 및 등록 (관리자만 생성 가능)
+class CategoryListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAdminUser]  # 관리자만 생성 가능
 
 # 상품 목록 조회 및 상품 등록 View
 class ProductListCreateAPIView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # 비로그인 사용자는 조회만 가능, 등록은 로그인 필요
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['title', 'description', 'created_by__username']  # 제목, 설명, 작성자명으로 필터링 가능
+    pagination_class = PageNumberPagination
 
     def perform_create(self, serializer):
         # 상품을 등록할 때 현재 로그인한 사용자를 작성자로 설정
