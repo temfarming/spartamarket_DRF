@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     'django_seed',
     'rest_framework',
+    'django_filters', # django-filter 추가
 
     'accounts',
     'products',
@@ -94,6 +95,9 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],  # 필터 백엔드 설정
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',  # 페이지네이션 기본 클래스
+    'PAGE_SIZE': 10,  # 한 페이지당 10개 항목 표시
 }
 
 from datetime import timedelta
