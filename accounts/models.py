@@ -30,3 +30,5 @@ class CustomUser(AbstractUser):
     def is_followed_by(self, user):
         """팔로우 당했는지 확인하는 메서드"""
         return self.followers.filter(pk=user.pk).exists()
+    
+

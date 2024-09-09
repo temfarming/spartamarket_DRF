@@ -1,54 +1,11 @@
-# from django.shortcuts import render
-# from django.http import JsonResponse, HttpResponse
-# from django.core import serializers
-# from rest_framework.decorators import api_view
-# from rest_framework.response import Response
-# from rest_framework import status
-# from django.shortcuts import get_object_or_404
-# from rest_framework.views import APIView
-# from .models import Product
-# from .serializers import ProductSerializer
-
-    
-# class ProductListAPIView(APIView):
-#     def get(self, request):
-#         products = Product.objects.all()
-#         serializer = ProductSerializer(products, many=True)
-#         return Response(serializer.data)
-    
-#     def post(self, request):
-#         serializer = ProductSerializer(data=request.data)
-#         if serializer.is_valid(raise_exception=True):
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-# class ProductDetailAPIView(APIView):
-
-#     def get_object(self, pk):
-#         return get_object_or_404(Product, pk=pk)
-    
-#     def get(self, request, pk):
-#         product = self.get_object(pk)
-#         serializer = ProductSerializer(product)
-#         return Response(serializer.data)
-    
-#     def put(self, request, pk):
-#         product = self.get_object(pk)
-#         serializer = ProductSerializer(product, data=request.data, partial=True)
-#         if serializer.is_valid(raise_exception=True):
-#             serializer.save()
-#             return Response(serializer.data)
-        
-#     def delete(self, request, pk):
-#         product = self.get_object(pk)
-#         product.delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
-    
-from rest_framework import generics, permissions, serializers
-from rest_framework.pagination import PageNumberPagination  
-from .models import Product, Category
-from .serializers import ProductSerializer, CategorySerializer
+ 
+from rest_framework import generics, permissions, serializers, status, views
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from .models import Product, Category, Tag
+from .serializers import ProductSerializer, CategorySerializer, TagSerializer
 from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 
 
 # 카테고리 목록 조회 및 등록 (관리자만 생성 가능)
@@ -88,3 +45,36 @@ class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.user != instance.created_by:
             raise serializers.ValidationError({"error": "You do not have permission to delete this product."})
         instance.delete()
+
+
+# 상품 좋아요 추가/제거 View
+class ProductLikeView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, product_id):
+        product = get_object_or_404(Product, id=product_id)
+        if product.likes.filter(id=request.user.id).exists():
+            return Response({"detail": "Already liked this product."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        product.likes.add(request.user)
+        return Response({"detail": "Product liked."}, status=status.HTTP_200_OK)
+
+    def delete(self, request, product_id):
+        product = get_object_or_404(Product, id=product_id)
+        if not product.likes.filter(id=request.user.id).exists():
+            return Response({"detail": "You haven't liked this product."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        product.likes.remove(request.user)
+        return Response({"detail": "Product unliked."}, status=status.HTTP_200_OK)
+
+# 태그 생성 View
+class TagCreateView(generics.CreateAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        tag_name = self.request.data.get("name")
+        if tag_name:
+            tag_name = tag_name.lower()  # 대소문자 구분 없이 태그 저장
+        serializer.save(name=tag_name)

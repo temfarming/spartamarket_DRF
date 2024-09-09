@@ -17,8 +17,24 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)                    # 생성 날짜
     updated_at = models.DateTimeField(auto_now=True)                        # 수정 날짜
     categories = models.ManyToManyField(Category)                           # 상품과 카테고리 간의 다대다 관계
+    likes = models.ManyToManyField(CustomUser, related_name='liked_products', blank=True)  # 좋아요 기능 (ManyToMany)
 
+    def total_likes(self):
+        """게시글의 좋아요 수를 반환"""
+        return self.likes.count()
+    
     def __str__(self):
         return self.title
 
 
+# 상품 태그 모델
+class Tag(models.Model):
+    name = models.CharField(max_length=100, unique=True)  # 태그 이름 (유일한 값)
+
+    def save(self, *args, **kwargs):
+        """태그를 소문자로 저장하여 대소문자 구분 없이 처리"""
+        self.name = self.name.lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name

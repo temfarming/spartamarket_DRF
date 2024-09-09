@@ -101,3 +101,4 @@ class FollowView(views.APIView):
         
         request.user.unfollow(target_user)
         return Response({"detail": f"Stopped following {target_user.username}."}, status=status.HTTP_200_OK)
+    
