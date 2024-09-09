@@ -62,12 +62,6 @@ class SignupSerializer(serializers.ModelSerializer):
         user.gender = validated_data.get('gender', '')  # gender 저장
         user.bio = validated_data.get('bio', '')  # bio 저장
         
-        # 사용자 프로필 관련 추가 정보 저장
-        # user.profile.nickname = validated_data['nickname']
-        # user.profile.birth_date = validated_data['birth_date']
-        # user.profile.gender = validated_data.get('gender', '')  # 선택 필드는 없을 수 있음
-        # user.profile.bio = validated_data.get('bio', '')        # 선택 필드는 없을 수 있음
-        
         # 데이터베이스에 사용자 정보 저장
         user.save()
         return user  # 새로 생성된 User 객체를 반환

@@ -20,11 +20,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@z&4my(qqvscleoiwzhre777^&04p_uje!_khl+zxf8f9k6t07'
+import os
+from pathlib import Path
+from dotenv import load_dotenv  # python-dotenv에서 불러오기
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# .env 파일 로드
+load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 기존의 SECRET_KEY 대신 환경 변수에서 불러오기
+SECRET_KEY = os.getenv('SECRET_KEY')
+
+# 아래 설정은 그대로 유지
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
 
@@ -42,6 +51,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework',
     'django_filters', # django-filter 추가
+    'rest_framework_simplejwt.token_blacklist',
 
     'accounts',
     'products',
@@ -150,3 +160,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+SECRET_KEY = os.getenv('SECRET_KEY')
