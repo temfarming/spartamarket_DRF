@@ -1,39 +1,83 @@
 
+from rest_framework import status, views, generics, permissions
+from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework import generics
-from .serializers import SignupSerializer
-from rest_framework.permissions import AllowAny
-from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import CustomUser
+from .serializers import SignupSerializer, CustomUserSerializer
+from django.contrib.auth import update_session_auth_hash
 
-
-# 로그인  (JWT 토큰 발급)
 class CustomTokenObtainPairView(TokenObtainPairView):
-    pass
+    permission_classes = [permissions.AllowAny]
 
-# 회원가입 
+class LogoutView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh")
+            if refresh_token is None:
+                return Response({"detail": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class SignupView(generics.CreateAPIView):
     serializer_class = SignupSerializer
-    permission_classes = [AllowAny]  # 누구나 접근 가능 (회원가입)
+    permission_classes = [permissions.AllowAny]
 
-# 프로필 조회 
 class ProfileView(generics.RetrieveAPIView):
     queryset = CustomUser.objects.all()
-    serializer_class = SignupSerializer
-    permission_classes = [IsAuthenticated]  # 로그인한 사용자만 조회 가능
-    lookup_field = 'username'  # URL에서 username을 통해 사용자 조회
+    serializer_class = CustomUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'username'
 
     def get_queryset(self):
-        # 로그인한 사용자만 자신의 프로필을 조회할 수 있도록 제한
         return CustomUser.objects.filter(username=self.request.user.username)
 
-# 프로필 업데이트  (PUT 요청)
 class ProfileUpdateView(generics.UpdateAPIView):
     queryset = CustomUser.objects.all()
-    serializer_class = SignupSerializer  # 같은 serializer 사용 가능 (필드들이 같기 때문에)
-    permission_classes = [IsAuthenticated]  # 로그인한 사용자만 접근 가능
-    lookup_field = 'username'  # URL에서 username을 기반으로 검색
+    serializer_class = CustomUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'username'
 
     def get_queryset(self):
-        # 로그인한 사용자만 자신의 프로필을 수정할 수 있도록 제한
         return CustomUser.objects.filter(username=self.request.user.username)
+
+class ChangePasswordView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+
+        if not old_password or not new_password:
+            return Response({"detail": "Both old and new passwords are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(old_password):
+            return Response({"detail": "Wrong old password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        update_session_auth_hash(request, user)
+
+        return Response({"detail": "Password updated successfully."}, status=status.HTTP_200_OK)
+
+class DeleteAccountView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, *args, **kwargs):
+        user = request.user
+        password = request.data.get("password")
+
+        if not password:
+            return Response({"detail": "Password is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(password):
+            return Response({"detail": "Wrong password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.delete()
+        return Response({"detail": "Account deleted successfully."}, status=status.HTTP_204_NO_CONTENT)

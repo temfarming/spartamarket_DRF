@@ -1,16 +1,23 @@
+
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import SignupView, ProfileUpdateView,ProfileView
+from rest_framework_simplejwt.views import TokenRefreshView
+from .views import (
+    CustomTokenObtainPairView,
+    LogoutView,
+    SignupView,
+    ProfileUpdateView,
+    ProfileView,
+    ChangePasswordView,
+    DeleteAccountView
+)
 
 urlpatterns = [
-    # 로그인
-    path("signin/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    # 토큰 갱신
-    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    # 회원가입
+    path("signin/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path("signup/", SignupView.as_view(), name="signup"),
-    # 프로필 조회 
-    path('<str:username>/', ProfileView.as_view(), name='profile'),
-    # 프로필 업데이트
-    path("accounts/<str:username>/", ProfileUpdateView.as_view(), name="profile-update"),
+    path("profile/<str:username>/update/", ProfileUpdateView.as_view(), name="profile-update"),
+    path('profile/<str:username>/', ProfileView.as_view(), name='profile'),
+    path('password/change/', ChangePasswordView.as_view(), name='change-password'),
+    path('account/delete/', DeleteAccountView.as_view(), name='delete-account'),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
