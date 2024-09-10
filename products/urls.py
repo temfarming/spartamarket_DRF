@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProductListCreateAPIView, ProductDetailAPIView, CategoryListCreateAPIView
+from .views import ProductListCreateAPIView, ProductDetailAPIView, CategoryListCreateAPIView, ProductLikeView, TagCreateView
 
 # 상품 관련 URL 패턴 설정
 urlpatterns = [
@@ -11,5 +11,11 @@ urlpatterns = [
 
     # 카테고리 목록 조회 및 등록 (관리자만 가능)
     path('categories/', CategoryListCreateAPIView.as_view(), name='category-list-create'),
+
+    # 개시글 좋아요
+    path('<int:product_id>/like/', ProductLikeView.as_view(), name='product-like'),
+
+    # 태그 생성
+    path('tags/create/', TagCreateView.as_view(), name='tag-create'),
 ]
 

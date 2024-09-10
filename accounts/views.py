@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import CustomUser
 from .serializers import SignupSerializer, CustomUserSerializer
 from django.contrib.auth import update_session_auth_hash
+from django.shortcuts import get_object_or_404
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = [permissions.AllowAny]
@@ -81,3 +82,23 @@ class DeleteAccountView(views.APIView):
 
         user.delete()
         return Response({"detail": "Account deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    
+class FollowView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, username):
+        target_user = get_object_or_404(CustomUser, username=username)
+        if request.user.is_following(target_user):
+            return Response({"detail": "Already following this user."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        request.user.follow(target_user)
+        return Response({"detail": f"Started following {target_user.username}."}, status=status.HTTP_200_OK)
+
+    def delete(self, request, username):
+        target_user = get_object_or_404(CustomUser, username=username)
+        if not request.user.is_following(target_user):
+            return Response({"detail": "Not following this user."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        request.user.unfollow(target_user)
+        return Response({"detail": f"Stopped following {target_user.username}."}, status=status.HTTP_200_OK)
+    
