@@ -73,7 +73,7 @@ Django_team_project/
 │   ├── tests.py
 │   ├── urls.py
 │   └── views.py
-│
+├── image
 ├── products/
 │   ├── migrations/
 │   ├── __init__.py
@@ -108,4 +108,4 @@ Django_team_project/
 5. 풀 리퀘스트를 생성합니다.
 
 ## 라이선스
-이 프로젝트는 YJW의 라이선스 하에 배포됩니다. 자세한 내용은 LICENSE 파일을 참조하세요. (각 기능별 점검 이미지 포함)
+이 프로젝트는 YJW의 라이선스 하에 배포됩니다. 각 기능별 점검 이미지 및 ERD는 image 폴더에서 확인 하실 수 있습니다. 
