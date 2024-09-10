@@ -1,6 +1,6 @@
 
 # spartamaket_DRF 개인 프로젝트 
-spartamaket_DRF 개인 프로젝트는 Django 프레임워크를 기반으로 개발되었습니다.
+spartamaket_DRF 개인 프로젝트는 ChatGPT의 도움을 받아 Django 프레임워크를 기반으로 개발되었습니다.
 ## 목차
 - [설치](#설치)
 - [사용법](#사용법)
