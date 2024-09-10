@@ -20,7 +20,7 @@ class ProductListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]  # 비로그인 사용자는 조회만 가능, 등록은 로그인 필요
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['title', 'description', 'created_by__username']  # 제목, 설명, 작성자명으로 필터링 가능
+    filterset_fields = ['title', 'description', 'created_by__username', 'tags']  # 제목, 설명, 작성자명으로 필터링 가능
     pagination_class = PageNumberPagination
 
     def perform_create(self, serializer):
